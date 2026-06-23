@@ -1,18 +1,21 @@
 package main
 
 import (
+    "url-shortener/config"
+    "url-shortener/internal/handler"
+
     "github.com/gin-gonic/gin"
-    "net/http"
 )
 
 func main() {
+    cfg := config.Load()
+
     r := gin.Default()
 
-    r.GET("/ping", func(c *gin.Context) {
-        c.JSON(http.StatusOK, gin.H{
-            "message": "pong",
-        })
-    })
+    urlHandler := handler.NewURLHandler()
 
-    r.Run(":8080")
+    r.POST("/shorten", urlHandler.Shorten)
+    r.GET("/:code", urlHandler.Redirect)
+
+    r.Run(cfg.Port)
 }
