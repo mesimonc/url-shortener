@@ -4,12 +4,15 @@ import (
     "crypto/rand"
     "encoding/base64"
     "fmt"
+    "url-shortener/internal/repository"
 )
 
-type URLService struct{}
+type URLService struct {
+    repo *repository.URLRepository
+}
 
-func NewURLService() *URLService {
-    return &URLService{}
+func NewURLService(repo *repository.URLRepository) *URLService {
+    return &URLService{repo: repo}
 }
 
 func (s *URLService) Shorten(originalURL string) (string, error) {
@@ -17,6 +20,12 @@ func (s *URLService) Shorten(originalURL string) (string, error) {
     if err != nil {
         return "", fmt.Errorf("generate code: %w", err)
     }
+
+    _, err = s.repo.Save(code, originalURL)
+    if err != nil {
+        return "", fmt.Errorf("save url: %w", err)
+    }
+
     return code, nil
 }
 
@@ -26,4 +35,4 @@ func generateCode(length int) (string, error) {
         return "", err
     }
     return base64.URLEncoding.EncodeToString(bytes)[:length], nil
-} 
+}

@@ -1,8 +1,10 @@
 package main
 
 import (
+    "log"
     "url-shortener/config"
     "url-shortener/internal/handler"
+    "url-shortener/internal/repository"
     "url-shortener/internal/service"
 
     "github.com/gin-gonic/gin"
@@ -11,11 +13,21 @@ import (
 func main() {
     cfg := config.Load()
 
-    r := gin.Default()
+    db, err := repository.NewPostgres(cfg.DatabaseURL)
+    if err != nil {
+        log.Fatalf("failed to connect to postgres: %v", err)
+    }
+    defer db.Close()
 
-    urlService := service.NewURLService()
+    if err := repository.Migrate(db); err != nil {
+        log.Fatalf("failed to migrate: %v", err)
+    }
+
+    urlRepo := repository.NewURLRepository(db)
+    urlService := service.NewURLService(urlRepo)
     urlHandler := handler.NewURLHandler(urlService)
 
+    r := gin.Default()
     r.POST("/shorten", urlHandler.Shorten)
     r.GET("/:code", urlHandler.Redirect)
 
