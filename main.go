@@ -13,12 +13,12 @@ import (
 func main() {
     cfg := config.Load()
 
-    // Connect to PostgreSQL
+    // Connect to PostgreSQL via GORM
     db, err := repository.NewPostgres(cfg.DatabaseURL)
     if err != nil {
         log.Fatalf("failed to connect to postgres: %v", err)
     }
-    defer db.Close()
+    //defer db.Close()
 
     // Run database migrations
     if err := repository.Migrate(db); err != nil {
