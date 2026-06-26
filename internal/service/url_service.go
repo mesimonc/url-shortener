@@ -1,6 +1,7 @@
 package service
 
 import (
+    "context"
     "crypto/rand"
     "encoding/base64"
     "fmt"
@@ -8,13 +9,16 @@ import (
 )
 
 type URLService struct {
-    repo *repository.URLRepository
+    repo  *repository.URLRepository
+    cache *repository.Cache
 }
 
-func NewURLService(repo *repository.URLRepository) *URLService {
-    return &URLService{repo: repo}
+// NewURLService creates a new URLService with the given repository and cache.
+func NewURLService(repo *repository.URLRepository, cache *repository.Cache) *URLService {
+    return &URLService{repo: repo, cache: cache}
 }
 
+// Shorten generates a short code for the given URL and persists it.
 func (s *URLService) Shorten(originalURL string) (string, error) {
     code, err := generateCode(6)
     if err != nil {
@@ -26,24 +30,13 @@ func (s *URLService) Shorten(originalURL string) (string, error) {
         return "", fmt.Errorf("save url: %w", err)
     }
 
+    _ = s.cache.Set(context.Background(), code, originalURL)
+
     return code, nil
 }
 
+// Resolve looks up the original URL for the given short code.
+// It checks the cache first, falling back to the database on a miss.
 func (s *URLService) Resolve(code string) (string, error) {
-    url, err := s.repo.FindByCode(code)
-    if err != nil {
-        return "", err
-    }
-    if url == nil {
-        return "", nil
-    }
-    return url.OriginalURL, nil
-}
-
-func generateCode(length int) (string, error) {
-    bytes := make([]byte, length)
-    if _, err := rand.Read(bytes); err != nil {
-        return "", err
-    }
-    return base64.URLEncoding.EncodeToString(bytes)[:length], nil
-}
+    // Check cache first
+    if cached, err :=
