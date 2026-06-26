@@ -9,6 +9,7 @@ A URL shortening service built with Go, Gin, PostgreSQL, and Redis.
 - **PostgreSQL** — Primary database
 - **Redis** — Caching layer
 - **Docker Compose** — Local development environment
+- **GORM** — ORM for PostgreSQL
 
 ## Features
 
