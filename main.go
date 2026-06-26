@@ -39,6 +39,7 @@ func main() {
     r := gin.Default()
     r.POST("/shorten", urlHandler.Shorten)
     r.GET("/:code", urlHandler.Redirect)
+	r.GET("/api/stats/:code", urlHandler.Stats)
 
     r.Run(cfg.Port)
 }

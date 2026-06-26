@@ -62,6 +62,11 @@ func (s *URLService) Resolve(code string) (string, error) {
 	return url.OriginalURL, nil
 }
 
+// GetStats returns the URL record for the given short code.
+func (s *URLService) GetStats(code string) (*repository.URL, error) {
+    return s.repo.FindByCode(code)
+}
+
 // generateCode generates a cryptographically random URL-safe string of the given length.
 func generateCode(length int) (string, error) {
 	bytes := make([]byte, length)

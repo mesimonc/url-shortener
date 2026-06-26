@@ -3,6 +3,7 @@ package repository
 import (
     "database/sql"
     "fmt"
+	"time"
 
     _ "github.com/lib/pq"
 )
@@ -12,6 +13,7 @@ type URL struct {
     Code        string
     OriginalURL string
     Clicks      int64
+	CreatedAt   time.Time
 }
 
 type URLRepository struct {
@@ -26,11 +28,11 @@ func (r *URLRepository) Save(code, originalURL string) (*URL, error) {
     query := `
         INSERT INTO urls (code, original_url)
         VALUES ($1, $2)
-        RETURNING id, code, original_url, clicks
+        RETURNING id, code, original_url, clicks, created_at
     `
     url := &URL{}
     err := r.db.QueryRow(query, code, originalURL).Scan(
-        &url.ID, &url.Code, &url.OriginalURL, &url.Clicks,
+        &url.ID, &url.Code, &url.OriginalURL, &url.Clicks, &url.CreatedAt,
     )
     if err != nil {
         return nil, fmt.Errorf("save url: %w", err)
@@ -39,10 +41,10 @@ func (r *URLRepository) Save(code, originalURL string) (*URL, error) {
 }
 
 func (r *URLRepository) FindByCode(code string) (*URL, error) {
-    query := `SELECT id, code, original_url, clicks FROM urls WHERE code = $1`
+    query := `SELECT id, code, original_url, clicks, created_at FROM urls WHERE code = $1`
     url := &URL{}
     err := r.db.QueryRow(query, code).Scan(
-        &url.ID, &url.Code, &url.OriginalURL, &url.Clicks,
+        &url.ID, &url.Code, &url.OriginalURL, &url.Clicks, &url.CreatedAt,
     )
     if err == sql.ErrNoRows {
         return nil, nil

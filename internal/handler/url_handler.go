@@ -49,3 +49,25 @@ func (h *URLHandler) Redirect(c *gin.Context) {
 
     c.Redirect(http.StatusMovedPermanently, originalURL)
 }
+
+// Stats returns click statistics for the given short code.
+func (h *URLHandler) Stats(c *gin.Context) {
+    code := c.Param("code")
+
+    url, err := h.svc.GetStats(code)
+    if err != nil {
+        c.JSON(http.StatusInternalServerError, gin.H{"error": "internal error"})
+        return
+    }
+    if url == nil {
+        c.JSON(http.StatusNotFound, gin.H{"error": "URL not found"})
+        return
+    }
+
+    c.JSON(http.StatusOK, gin.H{
+        "code":         url.Code,
+        "original_url": url.OriginalURL,
+        "clicks":       url.Clicks,
+        "created_at":   url.CreatedAt,
+    })
+}
