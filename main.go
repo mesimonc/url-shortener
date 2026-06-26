@@ -37,7 +37,8 @@ func main() {
     urlHandler := handler.NewURLHandler(urlService)
 
     r := gin.Default()
-    r.POST("/shorten", urlHandler.Shorten)
+	// Apply rate limiter to /shorten only
+    r.POST("/shorten", handler.NewRateLimiter("5-M"), urlHandler.Shorten)
     r.GET("/:code", urlHandler.Redirect)
 	r.GET("/api/stats/:code", urlHandler.Stats)
 
