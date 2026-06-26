@@ -5,6 +5,7 @@ import (
 	"crypto/rand"
 	"encoding/base64"
 	"fmt"
+	"strings"
 	"url-shortener/internal/repository"
 )
 
@@ -32,8 +33,11 @@ func (s *URLService) Shorten(originalURL, customCode string) (string, error) {
 
 	_, err := s.repo.Save(code, originalURL)
 	if err != nil {
-		return "", fmt.Errorf("save url: %w", err)
-	}
+    if strings.Contains(err.Error(), "duplicate") {
+        return "", fmt.Errorf("code already taken")
+    }
+    return "", fmt.Errorf("save url: %w", err)
+}
 
 	_ = s.cache.Set(context.Background(), code, originalURL)
 

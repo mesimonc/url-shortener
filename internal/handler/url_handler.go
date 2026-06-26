@@ -28,10 +28,14 @@ func (h *URLHandler) Shorten(c *gin.Context) {
 	}
 
 	code, err := h.svc.Shorten(req.URL, req.CustomCode)
-	if err != nil {
-		internalError(c)
-		return
-	}
+    if err != nil {
+        if err.Error() == "code already taken" {
+            badRequest(c, "custom code already taken")
+            return
+        }
+        internalError(c)
+        return
+    }
 
 	c.JSON(201, gin.H{"code": code})
 }
