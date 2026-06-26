@@ -52,3 +52,9 @@ func (r *URLRepository) FindByCode(code string) (*URL, error) {
     }
     return url, nil
 }
+
+// IncrementClicks increments the click count for the given short code.
+func (r *URLRepository) IncrementClicks(code string) error {
+    _, err := r.db.Exec(`UPDATE urls SET clicks = clicks + 1 WHERE code = $1`, code)
+    return err
+}
