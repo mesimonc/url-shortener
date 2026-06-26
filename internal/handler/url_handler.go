@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"net/http"
 	"url-shortener/internal/service"
 
 	"github.com/gin-gonic/gin"
@@ -24,17 +23,17 @@ func (h *URLHandler) Shorten(c *gin.Context) {
 	}
 
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		badRequest(c, err.Error())
 		return
 	}
 
 	code, err := h.svc.Shorten(req.URL, req.CustomCode)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to shorten"})
+		internalError(c)
 		return
 	}
 
-	c.JSON(http.StatusCreated, gin.H{"code": code})
+	c.JSON(201, gin.H{"code": code})
 }
 
 // Redirect handles GET /:code, redirects to the original URL.
@@ -43,15 +42,15 @@ func (h *URLHandler) Redirect(c *gin.Context) {
 
 	originalURL, err := h.svc.Resolve(code)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
+		internalError(c)
 		return
 	}
 	if originalURL == "" {
-		c.JSON(http.StatusNotFound, gin.H{"error": "not found"})
+		notFound(c, "URL not found")
 		return
 	}
 
-	c.Redirect(http.StatusMovedPermanently, originalURL)
+	c.Redirect(301, originalURL)
 }
 
 // Stats handles GET /api/stats/:code, returns click statistics.
@@ -60,15 +59,15 @@ func (h *URLHandler) Stats(c *gin.Context) {
 
 	url, err := h.svc.GetStats(code)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal error"})
+		internalError(c)
 		return
 	}
 	if url == nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "URL not found"})
+		notFound(c, "URL not found")
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
+	c.JSON(200, gin.H{
 		"code":         url.Code,
 		"original_url": url.OriginalURL,
 		"clicks":       url.Clicks,
