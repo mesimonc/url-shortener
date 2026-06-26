@@ -19,13 +19,18 @@ func NewURLService(repo *repository.URLRepository, cache *repository.Cache) *URL
 }
 
 // Shorten generates a short code for the given URL and persists it.
-func (s *URLService) Shorten(originalURL string) (string, error) {
-	code, err := generateCode(6)
-	if err != nil {
-		return "", fmt.Errorf("generate code: %w", err)
+// If customCode is provided, it will be used instead of a random code.
+func (s *URLService) Shorten(originalURL, customCode string) (string, error) {
+	code := customCode
+	if code == "" {
+		var err error
+		code, err = generateCode(6)
+		if err != nil {
+			return "", fmt.Errorf("generate code: %w", err)
+		}
 	}
 
-	_, err = s.repo.Save(code, originalURL)
+	_, err := s.repo.Save(code, originalURL)
 	if err != nil {
 		return "", fmt.Errorf("save url: %w", err)
 	}
@@ -64,7 +69,7 @@ func (s *URLService) Resolve(code string) (string, error) {
 
 // GetStats returns the URL record for the given short code.
 func (s *URLService) GetStats(code string) (*repository.URL, error) {
-    return s.repo.FindByCode(code)
+	return s.repo.FindByCode(code)
 }
 
 // generateCode generates a cryptographically random URL-safe string of the given length.
