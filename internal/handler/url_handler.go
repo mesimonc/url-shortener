@@ -36,5 +36,16 @@ func (h *URLHandler) Shorten(c *gin.Context) {
 
 func (h *URLHandler) Redirect(c *gin.Context) {
     code := c.Param("code")
-    c.JSON(http.StatusOK, gin.H{"code": code})
+
+    originalURL, err := h.svc.Resolve(code)
+    if err != nil {
+        c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
+        return
+    }
+    if originalURL == "" {
+        c.JSON(http.StatusNotFound, gin.H{"error": "not found"})
+        return
+    }
+
+    c.Redirect(http.StatusMovedPermanently, originalURL)
 }

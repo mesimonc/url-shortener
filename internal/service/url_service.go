@@ -29,6 +29,17 @@ func (s *URLService) Shorten(originalURL string) (string, error) {
     return code, nil
 }
 
+func (s *URLService) Resolve(code string) (string, error) {
+    url, err := s.repo.FindByCode(code)
+    if err != nil {
+        return "", err
+    }
+    if url == nil {
+        return "", nil
+    }
+    return url.OriginalURL, nil
+}
+
 func generateCode(length int) (string, error) {
     bytes := make([]byte, length)
     if _, err := rand.Read(bytes); err != nil {
