@@ -20,6 +20,7 @@ func (h *URLHandler) Shorten(c *gin.Context) {
 	var req struct {
 		URL        string `json:"url"`
 		CustomCode string `json:"custom_code"`
+        ExpiresIn  int    `json:"expires_in_days"` // 0 = never expires
 	}
 
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -27,7 +28,7 @@ func (h *URLHandler) Shorten(c *gin.Context) {
 		return
 	}
 
-	code, err := h.svc.Shorten(req.URL, req.CustomCode)
+	code, err := h.svc.Shorten(req.URL, req.CustomCode, req.ExpiresIn)
     if err != nil {
         if err.Error() == "code already taken" {
             badRequest(c, "custom code already taken")

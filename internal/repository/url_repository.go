@@ -21,6 +21,7 @@ type URL struct {
 	OriginalURL string    `gorm:"not null"`
 	Clicks      int64     `gorm:"default:0"`
 	CreatedAt   time.Time
+	ExpiresAt   *time.Time `gorm:"index"`
 }
 
 type URLRepository struct {
@@ -54,8 +55,8 @@ func NewURLRepository(db *gorm.DB) *URLRepository {
 // }
 
 // Save inserts a new URL record into the database.
-func (r *URLRepository) Save(code, originalURL string) (*URL, error) {
-	url := &URL{Code: code, OriginalURL: originalURL}
+func (r *URLRepository) Save(code, originalURL string, expiresAt *time.Time) (*URL, error) {
+	url := &URL{Code: code, OriginalURL: originalURL, ExpiresAt: expiresAt}
 	result := r.db.Create(url)
 	return url, result.Error
 }

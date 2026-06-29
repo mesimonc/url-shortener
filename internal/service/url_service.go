@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"strings"
 	"url-shortener/internal/repository"
+	"time"
 )
 
 type URLService struct {
@@ -21,7 +22,8 @@ func NewURLService(repo *repository.URLRepository, cache *repository.Cache) *URL
 
 // Shorten generates a short code for the given URL and persists it.
 // If customCode is provided, it will be used instead of a random code.
-func (s *URLService) Shorten(originalURL, customCode string) (string, error) {
+// If expiresInDays is 0, the URL never expires.
+func (s *URLService) Shorten(originalURL, customCode string, expiresInDays int) (string, error) {
 	code := customCode
 	if code == "" {
 		var err error
@@ -31,7 +33,13 @@ func (s *URLService) Shorten(originalURL, customCode string) (string, error) {
 		}
 	}
 
-	_, err := s.repo.Save(code, originalURL)
+	var expiresAt *time.Time
+	if expiresInDays > 0 {
+		t := time.Now().AddDate(0, 0, expiresInDays)
+		expiresAt = &t
+	}
+
+	_, err := s.repo.Save(code, originalURL, expiresAt)
 	if err != nil {
     if strings.Contains(err.Error(), "duplicate") {
         return "", fmt.Errorf("code already taken")
@@ -60,6 +68,11 @@ func (s *URLService) Resolve(code string) (string, error) {
 	}
 	if url == nil {
 		return "", nil
+	}
+
+	// Check if URL has expired
+	if url.ExpiresAt != nil && time.Now().After(*url.ExpiresAt) {
+    	return "", nil
 	}
 
 	// Backfill cache
