@@ -18,7 +18,7 @@ func NewURLHandler(svc *service.URLService) *URLHandler {
 // Shorten handles POST /shorten, creates a short code for the given URL.
 func (h *URLHandler) Shorten(c *gin.Context) {
 	var req struct {
-		URL        string `json:"url"`
+		URL        string `json:"url" binding:"required,url"`
 		CustomCode string `json:"custom_code"`
         ExpiresIn  int    `json:"expires_in_days"` // 0 = never expires
 	}
