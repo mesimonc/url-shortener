@@ -10,6 +10,7 @@ A URL shortening service built with Go, Gin, PostgreSQL, and Redis.
 - **Redis** — Caching layer
 - **Docker Compose** — Local development environment
 - **GORM** — ORM for PostgreSQL
+- **Swagger** — API documentationavailable at http://localhost:8080/swagger/index.html
 
 ## Features
 
