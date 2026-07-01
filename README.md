@@ -71,6 +71,22 @@ Response:
 }
 ```
 
+### Shorten with custom code
+
+```bash
+curl -X POST http://localhost:8080/shorten \
+  -H "Content-Type: application/json" \
+  -d '{"url": "https://github.com", "custom_code": "github"}'
+```
+
+### Shorten with expiration
+
+```bash
+curl -X POST http://localhost:8080/shorten \
+  -H "Content-Type: application/json" \
+  -d '{"url": "https://github.com", "expires_in_days": 7}'
+```
+
 ### Redirect
 
 ```
@@ -90,9 +106,14 @@ Response:
   "code": "mB6pCp",
   "original_url": "https://github.com",
   "clicks": 5,
-  "created_at": "2026-06-26T20:10:02Z"
+  "created_at": "2026-06-26T20:10:02Z",
+  "expires_at": null
 }
 ```
+
+## Rate Limiting
+
+`POST /shorten` is limited to 5 requests per minute per IP.
 
 ## Project Structure
 
