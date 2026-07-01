@@ -1,5 +1,11 @@
 package main
 
+// @title           URL Shortener API
+// @version         1.0
+// @description     A URL shortening service built with Go, Gin, PostgreSQL and Redis.
+// @host            localhost:8080
+// @BasePath        /
+
 import (
 	"log"
 	"url-shortener/config"
@@ -8,6 +14,9 @@ import (
 	"url-shortener/internal/service"
 
 	"github.com/gin-gonic/gin"
+	_ "url-shortener/docs"
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
 func main() {
@@ -48,6 +57,7 @@ func main() {
 	r.POST("/shorten", handler.NewRateLimiter("5-M"), urlHandler.Shorten)
 	r.GET("/:code", urlHandler.Redirect)
 	r.GET("/api/stats/:code", urlHandler.Stats)
+	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	r.Run(cfg.Port)
 }
