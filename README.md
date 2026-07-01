@@ -115,6 +115,20 @@ Response:
 
 `POST /shorten` is limited to 5 requests per minute per IP.
 
+## Docker
+
+Build and run the application in Docker:
+
+```bash
+docker build -t url-shortener .
+docker run -p 8080:8080 \
+  -e DATABASE_URL=postgres://postgres:postgres@host.docker.internal:5432/urlshortener?sslmode=disable \
+  -e REDIS_URL=redis://host.docker.internal:6379 \
+  url-shortener
+```
+
+> Note: `host.docker.internal` lets the container connect to services running on your local machine.
+
 ## Project Structure
 
 ```
