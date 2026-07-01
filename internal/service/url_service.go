@@ -24,28 +24,42 @@ func NewURLService(repo *repository.URLRepository, cache *repository.Cache) *URL
 // If customCode is provided, it will be used instead of a random code.
 // If expiresInDays is 0, the URL never expires.
 func (s *URLService) Shorten(originalURL, customCode string, expiresInDays int) (string, error) {
-	code := customCode
-	if code == "" {
-		var err error
-		code, err = generateCode(6)
-		if err != nil {
-			return "", fmt.Errorf("generate code: %w", err)
-		}
-	}
-
 	var expiresAt *time.Time
 	if expiresInDays > 0 {
 		t := time.Now().AddDate(0, 0, expiresInDays)
 		expiresAt = &t
 	}
 
-	_, err := s.repo.Save(code, originalURL, expiresAt)
-	if err != nil {
-    if strings.Contains(err.Error(), "duplicate") {
-        return "", fmt.Errorf("code already taken")
-    }
-    return "", fmt.Errorf("save url: %w", err)
-}
+	var code string
+	if customCode != "" {
+		code = customCode
+		_, err := s.repo.Save(code, originalURL, expiresAt)
+		if err != nil {
+			if strings.Contains(err.Error(), "duplicate") {
+				return "", fmt.Errorf("code already taken")
+			}
+			return "", fmt.Errorf("save url: %w", err)
+		}
+	} else {
+		// Retry up to 3 times on collision
+		for i := 0; i < 3; i++ {
+			var err error
+			code, err = generateCode(6)
+			if err != nil {
+				return "", fmt.Errorf("generate code: %w", err)
+			}
+			_, err = s.repo.Save(code, originalURL, expiresAt)
+			if err == nil {
+				break
+			}
+			if !strings.Contains(err.Error(), "duplicate") {
+				return "", fmt.Errorf("save url: %w", err)
+			}
+			if i == 2 {
+				return "", fmt.Errorf("failed to generate unique code")
+			}
+		}
+	}
 
 	_ = s.cache.Set(context.Background(), code, originalURL)
 
